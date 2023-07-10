@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Line.label>ライン</Line.label>
+  <Line.description>直線を指定</Line.description>
+
+  <Rectangle.label>長方形</Rectangle.label>
+  <Rectangle.description>長方形に指定</Rectangle.description>
+
+  <RectangleFilled.label>長方形(塗)</RectangleFilled.label>
+  <RectangleFilled.description>長方形に指定して塗り潰す</RectangleFilled.description>
+
+  <Rectangle_Input.label>長方形</Rectangle_Input.label>
+  <Rectangle_Input.description>長方形に指定</Rectangle_Input.description>
+
+  <RectangleFilled_Input.label>長方形(塗)</RectangleFilled_Input.label>
+  <RectangleFilled_Input.description>長方形に指定して塗り潰す</RectangleFilled_Input.description>
+
+  <Ellipse.label>楕円</Ellipse.label>
+  <Ellipse.description>楕円に指定</Ellipse.description>
+
+  <EllipseFilled.label>楕円(塗)</EllipseFilled.label>
+  <EllipseFilled.description>楕円に指定して塗り潰す</EllipseFilled.description>
+
+  <Ellipse_Input.label>楕円</Ellipse_Input.label>
+  <Ellipse_Input.description>楕円に指定</Ellipse_Input.description>
+
+  <EllipseFilled_Input.label>楕円(塗)</EllipseFilled_Input.label>
+  <EllipseFilled_Input.description>楕円に指定して塗り潰す</EllipseFilled_Input.description>
+
+  <Hexagon.label>六角形</Hexagon.label>
+  <Hexagon.description>六角形に指定</Hexagon.description>
+
+  <HexagonFilled.label>六角形(塗)</HexagonFilled.label>
+  <HexagonFilled.description>六角形に指定して塗り潰す</HexagonFilled.description>
+
+  <Pentagon.label>六角形</Pentagon.label>
+  <Pentagon.description>六角形に指定</Pentagon.description>
+
+  <PentagonFilled.label>六角形(塗)</PentagonFilled.label>
+  <PentagonFilled.description>六角形に指定して塗り潰す</PentagonFilled.description>
+
+  <Circle.label>円形</Circle.label>
+  <Circle.description>円形に指定</Circle.description>
+
+  <CircleFilled.label>円形(塗)</CircleFilled.label>
+  <CircleFilled.description>円形に指定して塗り潰す</CircleFilled.description>
+
+  <FloodFill.label>塗り潰し</FloodFill.label>
+  <FloodFill.description>壁に囲まれたエリアの中を塗り潰します。</FloodFill.description>
+
+  <SunLamp.label>太陽灯</SunLamp.label>
+  <SunLamp.description>太陽灯の範囲直径の形に指定</SunLamp.description>
+
+  <SunLampOutline.label>太陽灯(輪郭)</SunLampOutline.label>
+  <SunLampOutline.description>太陽灯の範囲形状の輪郭を指定</SunLampOutline.description>
+
+  <TradeBeacon.label>貿易用 ビーコン</TradeBeacon.label>
+  <TradeBeacon.description>貿易用ビーコンの範囲直径の形に指定</TradeBeacon.description>
+
+  <TradeBeaconOutline.label>貿易用 ビーコン (輪郭)</TradeBeaconOutline.label>
+  <TradeBeaconOutline.description>貿易用ビーコンの範囲形状の輪郭を指定</TradeBeaconOutline.description>
+
+
+</LanguageData>
