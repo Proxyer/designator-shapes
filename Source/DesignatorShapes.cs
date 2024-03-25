@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Merthsoft.DesignatorShapes.Defs;
 using Merthsoft.DesignatorShapes.Shapes;
+using Merthsoft.DesignatorShapes.Ui;
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,8 +47,7 @@ public class DesignatorShapes : Mod
     public static float SunLampRadius;
     public static float TradeBeaconRadius;
 
-    public static Ui.ShapeControlsWindow ShapeControls;
-    private static readonly Ui.ShapeDictionary ShapeDictionary = new();
+    public static ShapeControlsWindow ShapeControls;
     public static bool FillCorners = true;
 
     private static int thickness = 1;
@@ -71,17 +71,6 @@ public class DesignatorShapes : Mod
         HarmonyInstance = new Harmony("Merthsoft.DesignatorShapes");
         HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
         Rotation = 0;
-
-        KeySettings.DefaultKeys = new(new[]
-        {
-            KeyBindingDefOf.Designator_RotateLeft?.MainKey ?? KeyCode.Q,
-            KeyBindingDefOf.Designator_RotateRight?.MainKey ?? KeyCode.E,
-            KeyBindingDefOf.Command_ItemForbid?.MainKey ?? KeyCode.F,
-            KeyCode.Equals,
-            KeyCode.Minus,
-            KeyCode.Z,
-            KeyCode.Y,
-        });
     }
 
     public override void DoSettingsWindowContents(Rect inRect)
@@ -90,14 +79,14 @@ public class DesignatorShapes : Mod
 
         var ls = new Listing_Standard();
         var outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - inRect.y);
-        var viewRect = new Rect(0, 0, outRect.width - 16, (Text.LineHeight + 2) * (26 + KeySettings.DefaultKeys.Count));
+        var viewRect = new Rect(0, 0, outRect.width - 16, (Text.LineHeight + 2) * (27 + KeySettings.DefaultKeys.Count));
 
         ls.Begin(viewRect);
         Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 
         if (ls.ButtonText("Merthsoft_DesignatorShapes_Settings_ShowShapeDictionary".Translate()))
         {
-            Find.WindowStack.Add(ShapeDictionary);
+            Find.WindowStack.Add(new ShapeDictionary());
             Event.current.Use();
         }
 
@@ -135,12 +124,12 @@ public class DesignatorShapes : Mod
         {
             if (Settings.ToggleableInterface)
                 ls.CheckboxLabeled("\t" + "Merthsoft_DesignatorShapes_Settings_AltToggle".Translate(), ref Settings.RestoreAltToggle);
+            ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_DisableRotation".Translate(), ref Settings.DisableRotationKeys);
+            ls.GapLine();
             ls.Label("Merthsoft_DesignatorShapes_Settings_KeyBindings".Translate());
 
             for (var keyIndex = 0; keyIndex < Settings.Keys.Count; keyIndex++)
                 DrawKeyInput(ls, keyIndex);
-
-            ls.GapLine();
         }
 
         Widgets.EndScrollView();
@@ -188,6 +177,23 @@ public class DesignatorShapes : Mod
     {
         if (!defsLoaded)
         {
+            KeySettings.DefaultKeys = new([
+                KeyBindingDefOf.Designator_RotateLeft?.MainKey ?? KeyCode.Q,
+                KeyBindingDefOf.Designator_RotateRight?.MainKey ?? KeyCode.E,
+                KeyBindingDefOf.Command_ItemForbid?.MainKey ?? KeyCode.F,
+                KeyCode.Equals,
+                KeyCode.Minus,
+                KeyCode.Z,
+                KeyCode.Y,
+            ]);
+
+            if (Settings.Keys == null)
+                Settings.Keys = new(KeySettings.DefaultKeys);
+
+            for (int i = 1; i <= KeySettings.DefaultKeys.Count; i++)
+                if (Settings.Keys.Count < i)
+                    Settings.Keys.Add(KeySettings.DefaultKeys[i - 1]);
+
             var shapeDefs = DefDatabase<DesignatorShapeDef>.AllDefsListForReading;
             defsLoaded = true;
 
@@ -200,7 +206,7 @@ public class DesignatorShapes : Mod
             if (tradeRadiusInfo != null)
                 TradeBeaconRadius = (float)tradeRadiusInfo.GetValue(null);
 
-            ShapeControls = new Ui.ShapeControlsWindow(Settings?.WindowX ?? 0, Settings?.WindowY ?? 0, Settings?.IconSize ?? 40);
+            ShapeControls = new ShapeControlsWindow(Settings?.WindowX ?? 0, Settings?.WindowY ?? 0, Settings?.IconSize ?? 40);
         }
     }
 
