@@ -14,7 +14,7 @@ public static class MapInterface_MapInterfaceOnGUI_AfterMainTabs
     {
         if (Find.CurrentMap == null
             || Find.DesignatorManager.SelectedDesignator == null
-            || WorldRendererUtility.WorldRendered)
+            || WorldRendererUtility.WorldSelected)
             return;
 
         if (!DesignatorShapes.Settings.RestoreAltToggle || DesignatorShapes.ShowControls)
@@ -65,12 +65,12 @@ public static class MapInterface_MapInterfaceOnGUI_AfterMainTabs
             }
             else
             {
-                if (key == keyMap[RotateLeftKeyIndex] && !DesignatorShapes.Settings.DisableRotationKeys)
+                if (key == keyMap[RotateLeftKeyIndex] && DesignatorShapes.Settings.EnableRotationKeys)
                 {
                     if (DesignatorShapes.RotateLeft())
                         current.Use();
                 }
-                else if (key == keyMap[RotateRightKeyIndex] && !DesignatorShapes.Settings.DisableRotationKeys)
+                else if (key == keyMap[RotateRightKeyIndex] && DesignatorShapes.Settings.EnableRotationKeys)
                 {
                     if (DesignatorShapes.RotateRight())
                         current.Use();
