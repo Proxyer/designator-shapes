@@ -42,21 +42,21 @@ internal class ShapeMenuDriver
         }
         else
         {
-            icons = new List<ActionIcon> { new ActionIcon {
+            icons = [ new ActionIcon {
                     label = "Back".Translate(),
                     action = () => SelectedGroup = previousGroups.Pop(),
                     icon = SelectedGroup.CloseUiIcon,
-                } };
-            icons.AddRange(SelectedGroup.Shapes.Select(s => new ActionIcon
-            {
-                label = s.LabelCap,
-                description = s.description,
-                icon = DictionaryMode || DesignatorShapes.CurrentTool?.defName != s.defName
-                        ? s.uiIcon
-                        : s.selectedUiIcon,
-                action = DictionaryMode ? null : () => DesignatorShapes.SelectTool(s),
-            }));
-            icons.AddRange(SelectedGroup.ChildrenGroups.SelectList(CreateActionIcon));
+                },
+                .. SelectedGroup.Shapes.Select(s => new ActionIcon
+                {
+                    label = s.LabelCap,
+                    description = s.description,
+                    icon = DictionaryMode || DesignatorShapes.CurrentTool?.defName != s.defName
+                            ? s.uiIcon
+                            : s.selectedUiIcon,
+                    action = DictionaryMode ? null : () => DesignatorShapes.SelectTool(s),
+                }),
+                .. SelectedGroup.ChildrenGroups.SelectList(CreateActionIcon), ];
         }
 
         return icons;
@@ -73,9 +73,9 @@ internal class ShapeMenuDriver
     };
 
     private Action GetAction(OverlayGroupDef g)
-        => g.NumShapes switch
+        => g.SelectMode switch
         {
-            1 => DictionaryMode ? null : () => DesignatorShapes.SelectTool(g.FirstShape),
+            AutoSelectGroupMode.AutoSelect => DictionaryMode ? null : () => DesignatorShapes.SelectTool(g.FirstShape),
             _ => () =>
             {
                 previousGroups.Push(SelectedGroup);

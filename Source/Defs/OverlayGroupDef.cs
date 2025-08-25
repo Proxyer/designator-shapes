@@ -16,10 +16,14 @@ public class OverlayGroupDef : Def
     public string parentGroupName;
     [Unsaved] public OverlayGroupDef ParentGroup;
 
-    [Unsaved] public List<DesignatorShapeDef> Shapes;
-    [Unsaved] public List<OverlayGroupDef> ChildrenGroups = new();
+    public bool autoSelect = true;
 
-    public int NumShapes => Shapes?.Count ?? 0;
+    [Unsaved] public List<DesignatorShapeDef> Shapes;
+    [Unsaved] public List<OverlayGroupDef> ChildrenGroups = [];
+    public AutoSelectGroupMode SelectMode
+        => autoSelect
+            ? (Shapes?.Count ?? 0) == 1 ? AutoSelectGroupMode.AutoSelect : AutoSelectGroupMode.DoNotAutoSelect
+            : AutoSelectGroupMode.DoNotAutoSelect;
 
     public DesignatorShapeDef FirstShape => Shapes?.FirstOrDefault() ?? null;
 

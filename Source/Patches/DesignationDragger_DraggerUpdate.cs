@@ -14,7 +14,7 @@ internal class DesignationDragger_DraggerUpdate
         foreach (var inst in instructions)
         {
             // Skip the main call to RenderHighlight
-            if (inst.opcode == OpCodes.Callvirt && (inst.operand as MethodInfo)?.Name == "RenderHighlight")
+            if (inst.opcode == OpCodes.Callvirt && inst.operand is MethodInfo { Name: "RenderHighlight" })
             {
                 yield return new CodeInstruction(OpCodes.Pop);
                 yield return new CodeInstruction(OpCodes.Pop);
@@ -27,7 +27,7 @@ internal class DesignationDragger_DraggerUpdate
 
     public static void Postfix(DesignationDragger __instance)
     {
-        if (!(bool)__instance.GetInstanceField("dragging"))
+        if (!__instance.GetInstanceField<bool>("dragging"))
             return;
 
         var cells = __instance.DragCells;

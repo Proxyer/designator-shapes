@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\1.6\Assemblies\</OutputPath>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
@@ -41,9 +41,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionIcon.cs" />
+    <Compile Include="BoundingBoxMode.cs" />
+    <Compile Include="Defs\AutoSelectGroupMode.cs" />
     <Compile Include="Defs\OverlayGroupDef.cs" />
     <Compile Include="KeySettings.cs" />
+    <Compile Include="Patches\DesignationDragger_DraggerOnGUI.cs" />
+    <Compile Include="Patches\Designator_DoExtraGuiControls.cs" />
+    <Compile Include="Patches\PlaySettings_DoPlaySettingsGlobalControls.cs" />
     <Compile Include="Shapes\DrawStyle\DrawStyles.cs" />
+    <Compile Include="Shapes\Grids.cs" />
+    <Compile Include="Shapes\InverseGrids.cs" />
     <Compile Include="Ui\KeyBinding.cs" />
     <Compile Include="Ui\ShapeDictionary.cs" />
     <Compile Include="Extensions.cs" />
@@ -52,7 +59,7 @@
     <Compile Include="Patches\DesignationDragger_DraggerUpdate.cs" />
     <Compile Include="Patches\Designator_Finalize.cs" />
     <Compile Include="Patches\GameFinalize_Init.cs" />
-    <Compile Include="Patches\GenConstruct_Patches.cs" />
+    <Compile Include="Patches\GenConstruct_PlaceBlueprintForBuild.cs" />
     <Compile Include="Patches\MapInterface_MapInterfaceOnGUI_BeforeMainTabs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RuntimeStringInterpolator.cs" />

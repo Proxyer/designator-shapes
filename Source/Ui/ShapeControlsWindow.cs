@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
@@ -35,8 +36,9 @@ public class ShapeControlsWindow
 
     public static float Height => NumRows * IconSize + LabelHeight + LineHeight*2;
 
-    private int inputWidth;
-    private int inputHeight;
+    private int inputWidth = 6;
+    private int inputHeight = 6;
+    private bool editingInput = false;
 
     public static IntVec3 InputVec => new(DesignatorShapes.ShapeControls.inputWidth, 0, DesignatorShapes.ShapeControls.inputHeight);
 
@@ -61,9 +63,9 @@ public class ShapeControlsWindow
         Find.WindowStack.ImmediateWindow(ID, dragging ? DraggingWindowRect : WindowRect, WindowLayer.SubSuper, DoWindow, false, dragging, 0);
     }
 
-    private void DrawIcon(Rect rect, ActionIcon icon)
+    private void DrawIcon(Rect rect, ActionIcon icon, string tooltip)
     {
-        if (Widgets.ButtonImage(rect, icon.icon, Color.white, icon.highlightColor ?? GenUI.MouseoverColor))
+        if (Widgets.ButtonImage(rect, icon.icon, Color.white, icon.highlightColor ?? GenUI.MouseoverColor, tooltip: tooltip))
             icon.action?.Invoke();
     }
 
@@ -73,7 +75,7 @@ public class ShapeControlsWindow
         var y = 0;
         foreach (var icon in icons)
         {
-            DrawIcon(new Rect(x * IconSize + rect.x, y * IconSize + rect.y, IconSize, IconSize), icon);
+            DrawIcon(new Rect(x * IconSize + rect.x, y * IconSize + rect.y, IconSize, IconSize), icon, icon.label);
 
             x++;
             if (x == NumButtons / NumRows)
@@ -111,29 +113,49 @@ public class ShapeControlsWindow
             DrawIcons(rect, controller.GenerateIcons());
 
             if (DesignatorShapes.CurrentTool?.Group == controller.SelectedGroup
-                && (DesignatorShapes.CurrentTool?.useSizeInputs ?? false))
+                && (DesignatorShapes.CurrentTool?.ShowSizeInputs ?? false))
             {
-                var buffer = inputWidth.ToString();
+                var width = rect.width;
 
                 rect.y += IconSize + 10;
-                rect.width /= 2;
-                rect.width -= 25;
+                rect.width = 10;
                 rect.height = 20;
+                
+                rect.x += 5;
+                if (Widgets.ButtonText(rect, editingInput ? "-" : "+"))
+                    editingInput = !editingInput;
 
-                Widgets.Label(rect, "Merthsoft_DesignatorShapes_SizeInputWidthLabel".Translate());
-                rect.x += 20;
-                rect.width -= 20;
-                Widgets.TextFieldNumeric(rect, ref inputWidth, ref buffer);
-                rect.x += rect.width + 25;
-                Widgets.Label(rect, "Merthsoft_DesignatorShapes_SizeInputHeightLabel".Translate());
-                rect.x += 20;
-                buffer = inputHeight.ToString();
-                Widgets.TextFieldNumeric(rect, ref inputHeight, ref buffer);
-
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Tab)
+                if (editingInput)
                 {
-                    GUI.FocusWindow(ID);
-                    Event.current.Use();
+                    rect.x += 5;
+                    rect.width = width - rect.x;
+                    rect.width = rect.width / 2;
+
+                    var label = "Merthsoft_DesignatorShapes_SizeInputWidthLabel".Translate() + ": ";
+                    var buffer = inputWidth.ToString();
+                    Widgets.TextFieldNumericLabeled(rect, label, ref inputWidth, ref buffer);
+                    
+                    label = "Merthsoft_DesignatorShapes_SizeInputHeightLabel".Translate() + ": ";
+                    buffer = inputHeight.ToString();
+                    rect.x += rect.width;
+                    Widgets.TextFieldNumericLabeled(rect, label, ref inputHeight, ref buffer);
+
+                    if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Tab)
+                    {
+                        GUI.FocusWindow(ID);
+                        Event.current.Use();
+                    }
+                } else
+                {
+                    rect.x += 15;
+                    rect.width = width - rect.x;
+                    rect.width = rect.width / 2;
+
+                    var label = "Merthsoft_DesignatorShapes_SizeInputWidthLabel".Translate() + $": {inputWidth}";
+                    Widgets.Label(rect, label);
+                    rect.x += rect.width;
+                    label = "Merthsoft_DesignatorShapes_SizeInputHeightLabel".Translate() + $": {inputHeight}";
+                    Widgets.Label(rect, label);
                 }
             }
         }

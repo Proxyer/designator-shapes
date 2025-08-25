@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Verse;
+using static UnityEngine.GraphicsBuffer;
+using static Verse.ArenaUtility.ArenaResult;
 
 namespace Merthsoft.DesignatorShapes.Shapes;
 
@@ -14,12 +17,7 @@ public static class Primitives
     /// <typeparam name="T">The type of the items we're swapping.</typeparam>
     /// <param name="item1">The first item.</param>
     /// <param name="item2">The second item.</param>
-    private static void swap<T>(ref T item1, ref T item2)
-    {
-        var temp = item1;
-        item1 = item2;
-        item2 = temp;
-    }
+    private static void swap<T>(ref T item1, ref T item2) => (item2, item1) = (item1, item2);
 
     private static IEnumerable<IntVec3> FillCorners(this IEnumerable<IntVec3> shape, IntVec3 center)
     {
@@ -136,17 +134,38 @@ public static class Primitives
 
     public static IEnumerable<IntVec3> HorizontalLine(int x1, int x2, int y, int z, int thickness, bool direction)
     {
-        if (x1 > x2)
-            swap(ref x1, ref x2);
-        return Range(x1, x2 - x1 + 1).SelectMany(x => Range(0, thickness, direction).Select(t => new IntVec3(x, y, z + t)));
+        if (x1 > x2) swap(ref x1, ref x2);
+
+        if (thickness < 0)
+        {
+            thickness = -thickness;
+            direction = !direction;
+        }
+
+        for (int x = x1; x <= x2; x++)
+        {
+            for (int t = 0; t < thickness; t++)
+                yield return new IntVec3(x, y, z + (direction ? t : -t));
+        }
     }
 
     public static IEnumerable<IntVec3> VerticalLine(int x, int y, int z1, int z2, int thickness, bool direction)
     {
-        if (z1 > z2)
-            swap(ref z1, ref z2);
-        return Range(z1, z2 - z1 + 1).SelectMany(z => Range(0, thickness, direction).Select(t => new IntVec3(x + t, y, z)));
+        if (z1 > z2) swap(ref z1, ref z2);
+
+        if (thickness < 0)
+        {
+            thickness = -thickness;
+            direction = !direction;
+        }
+
+        for (int zz = z1; zz <= z2; zz++)
+        {
+            for (int t = 0; t < thickness; t++)
+                yield return new IntVec3(x + (direction ? t : -t), y, zz);
+        }
     }
+
 
     public static IEnumerable<IntVec3> Rectangle(int x1, int y1, int z1, int x2, int y2, int z2, bool fill, int rotation, int thickness, bool fillCorners)
     {
@@ -343,48 +362,75 @@ public static class Primitives
             vectors.Add(vec);
     }
 
-    /// <summary>
-    /// Draws an ellipse to the sprite.
-    /// </summary>
-    /// <param name="x1"></param>
-    /// <param name="z1"></param>
-    /// <param name="x2"></param>
-    /// <param name="z2"></param>
-    /// <param name="fill">True to fill the ellipse.</param>
-    public static IEnumerable<IntVec3> Ellipse(
-        int x1, int y1, int z1,
-        int x2, int y2, int z2,
+    private const float RadiusOffset = 0.4f;
+
+    public static IEnumerable<IntVec3> Oval(
+        IntVec3 origin, IntVec3 target,
         bool fill, int thickness, bool fillCorners)
     {
-        int dx = x2 - x1;
-        int dz = z2 - z1;
+        var ret = new HashSet<IntVec3>();
+        var cellRect = CellRect.FromLimits(origin, target);
 
-        int rx = Math.Abs(dx) / 2;
-        int rz = Math.Abs(dz) / 2;
+        var rx = (float)cellRect.Width / 2f;
+        var rz = (float)cellRect.Height / 2f;
+        var center = cellRect.CenterCell.ToVector3();
 
-        if (rx == 0 && rz == 0)
+        if (cellRect.Width % 2 == 0) center.x -= 0.5f;
+        if (cellRect.Height % 2 == 0) center.z -= 0.5f;
+
+        var outwardExtra = thickness < 0 ? (-thickness - 1) : 0;
+        var outerRx = rx + outwardExtra;
+        var outerRz = rz + outwardExtra;
+        var innerRx = rx - (thickness > 0 ? thickness : 1);
+        var innerRz = rz - (thickness > 0 ? thickness : 1);
+
+        int minX = (int)Math.Floor(center.x - outerRx - RadiusOffset);
+        int maxX = (int)Math.Ceiling(center.x + outerRx + RadiusOffset);
+        int minZ = (int)Math.Floor(center.z - outerRz - RadiusOffset);
+        int maxZ = (int)Math.Ceiling(center.z + outerRz + RadiusOffset);
+
+        if (!fill && thickness == 1)
         {
-            yield return new IntVec3(x1, y1, z1);
-            yield break;
+            minX = (int)Math.Floor(center.x - outerRx - 1);
+            maxX = (int)Math.Ceiling(center.x + outerRx + 1);
+            minZ = (int)Math.Floor(center.z - outerRz - 1);
+            maxZ = (int)Math.Ceiling(center.z + outerRz + 1);
         }
 
-        if (rx == 0 || rz == 0)
+        for (int x = minX; x <= maxX; x++)
         {
-            foreach (var p in Line(x1, y1, z1, x2, y2, z2, thickness, fillCorners))
-                yield return p;
-            yield break;
+            for (int z = minZ; z <= maxZ; z++)
+            {
+                var dx = x - center.x;
+                var dz = z - center.z;
+                if (!EllipseContains(dx, dz, outerRx, outerRz))
+                    continue;
+
+                if (fill)
+                {
+                    ret.Add(new IntVec3(x, 0, z));
+                }
+                else
+                {
+                    var insideInner = EllipseContains(dx, dz, innerRx, innerRz);
+                    if (!insideInner)
+                        ret.Add(new IntVec3(x, 0, z));
+                }
+            }
         }
 
-        // Ellipse center is midpoint between anchor and current cursor
-        int h = x1 + dx / 2;
-        int k = z1 + dz / 2;
-
-        foreach (var p in RadialEllipse(h, y1, k, rx, rz, fill, thickness, fillCorners))
-        {
-            yield return p;
-        }
+        return fillCorners && !fill && thickness == 1
+            ? ret.FillCorners(center.ToIntVec3())
+            : ret;
     }
 
+    static bool EllipseContains(double dx, double dz, double rx, double rz)
+    {
+        if (rx <= 0 || rz <= 0) return false;
+        var val = (dx * dx) / ((rx + RadiusOffset) * (rx + RadiusOffset))
+                + (dz * dz) / ((rz + RadiusOffset) * (rz + RadiusOffset));
+        return val <= 1.0;
+    }
 
     /// <summary>
     /// Draws a filled ellipse to the sprite.
@@ -519,4 +565,84 @@ public static class Primitives
 
         return ret;
     }
+
+    public static IEnumerable<IntVec3> Grid(IntVec3 s, IntVec3 t, int xSpacing, int zSpacing, int thickness)
+    {
+        var xStart = Math.Min(s.x, t.x);
+        var xEnd = Math.Max(s.x, t.x);
+        var zStart = Math.Min(s.z, t.z);
+        var zEnd = Math.Max(s.z, t.z);
+        var y = s.y;
+
+        var ret = new HashSet<IntVec3>();
+
+        if (xSpacing <= 0 || zSpacing <= 0)
+            return ret;
+
+        for (var x = xStart; x <= xEnd; x += xSpacing)
+            foreach (var p in VerticalLine(x, y, zStart, zEnd, thickness, true))
+                ret.Add(p);
+
+        for (var z = zEnd; z >= zStart; z -= zSpacing)
+            foreach (var p in HorizontalLine(xStart, xEnd, y, z, thickness, true))
+                ret.Add(p);
+
+        return ret;
+    }
+
+    public static IEnumerable<IntVec3> InverseGrid(IntVec3 s, IntVec3 t, int xSpacing, int zSpacing, int thickness)
+    {
+        var xStart = Math.Min(s.x, t.x);
+        var xEnd = Math.Max(s.x, t.x);
+        var zStart = Math.Min(s.z, t.z);
+        var zEnd = Math.Max(s.z, t.z);
+        var y = s.y;
+
+        var ret = new HashSet<IntVec3>();
+        if (xSpacing <= 0 || zSpacing <= 0 || thickness < 0)
+            return ret;
+
+        if (thickness >= xSpacing || thickness >= zSpacing)
+            return ret;
+
+        var xLines = new List<int>();
+        for (var x = xStart; x <= xEnd; x += xSpacing) 
+            xLines.Add(x);
+        
+        if (xLines.Count == 0 || xLines[xLines.Count - 1] != xEnd) 
+            xLines.Add(xEnd);
+
+        var zLines = new List<int>();
+
+        for (var z = zStart; z <= zEnd; z += zSpacing) 
+            zLines.Add(z);
+        
+        if (zLines.Count == 0 || zLines[zLines.Count - 1] != zEnd) 
+            zLines.Add(zEnd);
+
+        for (var xi = 0; xi < xLines.Count - 1; xi++)
+        {
+            var cellX1 = xLines[xi] + thickness;
+            var cellX2 = xLines[xi + 1] - 1; 
+
+            if (cellX1 > cellX2) 
+                continue;
+
+            for (var zi = 0; zi < zLines.Count - 1; zi++)
+            {
+                var cellZ1 = zLines[zi] + thickness;
+                var cellZ2 = zLines[zi + 1] - 1;
+
+                if (cellZ1 > cellZ2) 
+                    continue;
+
+                foreach (var p in Rectangle(cellX1, y, cellZ1, cellX2, y, cellZ2, true, rotation: 0, thickness: 1, fillCorners: true))
+                    ret.Add(p);
+            }
+        }
+
+        return ret;
+    }
+
+
 }

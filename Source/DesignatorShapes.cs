@@ -3,6 +3,7 @@ using Merthsoft.DesignatorShapes.Defs;
 using Merthsoft.DesignatorShapes.Shapes;
 using Merthsoft.DesignatorShapes.Ui;
 using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ namespace Merthsoft.DesignatorShapes;
 public class DesignatorShapes : Mod
 {
     private static bool defsLoaded = false;
+    public static Texture2D BoundingBoxTexture;
 
     public static DesignatorShapeDef CurrentTool { get; set; }
 
@@ -71,6 +73,11 @@ public class DesignatorShapes : Mod
         HarmonyInstance = new Harmony("Merthsoft.DesignatorShapes");
         HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
         Rotation = 0;
+
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            BoundingBoxTexture = ContentFinder<Texture2D>.Get("UI/Icons/BoundingBox");
+        });
     }
 
     public override void DoSettingsWindowContents(Rect inRect)
@@ -97,6 +104,17 @@ public class DesignatorShapes : Mod
         ls.TextFieldNumeric(ref Settings.FloodFillCellLimit, ref maxBuffer);
         ls.GapLine();
 
+        ls.Label("Merthsoft_DesignatorShapes_BoundingBoxBasedOnShapeMode".Translate());
+
+        foreach (BoundingBoxMode mode in Enum.GetValues(typeof(BoundingBoxMode)))
+        {
+            var isSelected = (Settings.BoundingBoxMode == mode);
+            var label = $"Merthsoft_DesignatorShapes_BoundingBoxBasedOnShapeMode_{mode}".Translate();
+            if (ls.RadioButton($"\t{label}", isSelected))
+                Settings.BoundingBoxMode = mode;
+        }
+
+        ls.GapLine();
         ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_AutoSelectShapes".Translate(), ref Settings.AutoSelectShape);
         ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_ResetShapeOnResume".Translate(), ref Settings.ResetShapeOnResume);
         ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_PauseOnFloodFill".Translate(), ref Settings.PauseOnFloodFillSelect);
@@ -118,13 +136,19 @@ public class DesignatorShapes : Mod
 
         ls.GapLine();
 
-        ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_EnableKeyboardInput".Translate(), ref Settings.EnableKeyboardInput);
         ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_AllowCollapsing".Translate(), ref Settings.ToggleableInterface);
+        if (Settings.ToggleableInterface && Settings.EnableKeyboardInput)
+        {
+            ls.CheckboxLabeled("\t" + "Merthsoft_DesignatorShapes_Settings_AltToggle".Translate(), ref Settings.RestoreAltToggle);
+            if (Settings.RestoreAltToggle)
+                ls.CheckboxLabeled("\t" + "Merthsoft_DesignatorShapes_Settings_HideCompletelyOnAltToggle".Translate(), ref Settings.HideCompletelyOnAltToggle);
+        }
+
+        ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_EnableKeyboardInput".Translate(), ref Settings.EnableKeyboardInput);
+
         if (Settings.EnableKeyboardInput)
         {
             ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_EnableRotation".Translate(), ref Settings.EnableRotationKeys);
-            if (Settings.ToggleableInterface)
-                ls.CheckboxLabeled("\t" + "Merthsoft_DesignatorShapes_Settings_AltToggle".Translate(), ref Settings.RestoreAltToggle);
             ls.GapLine();
             ls.Label("Merthsoft_DesignatorShapes_Settings_KeyBindings".Translate());
 
@@ -158,8 +182,8 @@ public class DesignatorShapes : Mod
         }
         if (Event.current.button == 1)
         {
-            List<FloatMenuOption> list = new()
-            {
+            List<FloatMenuOption> list =
+            [
                 new FloatMenuOption("ResetBinding".Translate(), delegate ()
                 {
                     Settings.Keys[keyIndex] = KeySettings.DefaultKeys[keyIndex];
@@ -168,7 +192,7 @@ public class DesignatorShapes : Mod
                 {
                     Settings.Keys[keyIndex] = KeyCode.None;
                 }, MenuOptionPriority.Default, null, null, 0f, null, null)
-            };
+            ];
             Find.WindowStack.Add(new FloatMenu(list));
         }
     }
@@ -258,5 +282,71 @@ public class DesignatorShapes : Mod
 
         if (def.pauseOnSelection && Settings.PauseOnFloodFillSelect)
             Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+    }
+
+    private static readonly FieldInfo OutlineTexField =
+        AccessTools.Field(typeof(DesignationDragger), "OutlineTex");
+
+    private static (IntVec3 upperLeft, IntVec3 bottomRight) GetCurrentBoundary(DesignationDragger dragger)
+    {
+        if (!DesignatorShapes.CurrentTool.AllowDragging)
+            return dragger.DragCells.GetBounds();
+        
+        switch (Settings.BoundingBoxMode)
+        {
+            case BoundingBoxMode.Vanilla:
+            case BoundingBoxMode.Toggle when !Settings.BoundingBoxBasedOnShape:
+                return GetDefaultBounds(dragger);
+            default:
+                return dragger.DragCells.GetBounds();
+        }
+    }
+
+    private static (IntVec3 upperLeft, IntVec3 bottomRight) GetDefaultBounds(DesignationDragger dragger)
+    {
+        var intVec = dragger.GetInstanceField<IntVec3>("startDragCell");
+        var intVec2 = UI.MouseCell();
+        return (intVec, intVec2);
+    }
+
+    public static void DrawDraggerOutline(DesignationDragger dragger)
+    {
+        var outlineTex = (Texture2D)OutlineTexField.GetValue(null);
+
+        var (upperLeft, bottomRight) = GetCurrentBoundary(dragger);
+        var intVec = upperLeft - bottomRight;
+
+        intVec.x = Mathf.Abs(intVec.x) + 1;
+        intVec.z = Mathf.Abs(intVec.z) + 1;
+
+        if (intVec.x > 1 || intVec.z > 1)
+        {
+            var vector = new Vector3(Mathf.Min(upperLeft.x, bottomRight.x), 0f, Mathf.Min(upperLeft.z, bottomRight.z));
+            var vector2 = new Vector3(Mathf.Max(upperLeft.x, bottomRight.x) + 1, 0f, Mathf.Max(upperLeft.z, bottomRight.z) + 1);
+            var vector3 = vector.MapToUIPosition();
+            var vector4 = vector2.MapToUIPosition();
+            Widgets.DrawBox(Rect.MinMaxRect(vector3.x, vector3.y, vector4.x, vector4.y), 1, outlineTex);
+        }
+
+        if (intVec.x >= 5)
+        {
+            var vector5 = (upperLeft.ToUIPosition() + bottomRight.ToUIPosition()) / 2f;
+            vector5.y = upperLeft.ToUIPosition().y;
+            Widgets.DrawNumberOnMap(vector5, intVec.x, Color.white);
+        }
+
+        if (intVec.z >= 5)
+        {
+            var vector6 = (upperLeft.ToUIPosition() + bottomRight.ToUIPosition()) / 2f;
+            vector6.x = upperLeft.ToUIPosition().x;
+            Widgets.DrawNumberOnMap(vector6, intVec.z, Color.white);
+        }
+
+        var cellCount = dragger.DragCells.Count;
+
+        if (intVec.Magnitude >= 3f && intVec.x >= 3 && intVec.z >= 3 && cellCount > 0)
+        {
+            Widgets.DrawNumberOnMap((upperLeft.ToUIPosition() + bottomRight.ToUIPosition()) / 2f, cellCount, Color.white);
+        }
     }
 }
