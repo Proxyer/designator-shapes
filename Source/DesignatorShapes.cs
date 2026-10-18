@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using Merthsoft.DesignatorShapes.Defs;
 using Merthsoft.DesignatorShapes.Shapes;
 using Merthsoft.DesignatorShapes.Ui;
@@ -19,8 +19,18 @@ public class DesignatorShapes : Mod
     public static Texture2D BoundingBoxTexture;
 
     public static DesignatorShapeDef CurrentTool { get; set; }
+    internal static DesignatorShapeDef PreviousTool { get; private set; }
 
-    public static DesignatorShapeDef CachedTool { get; set; }
+    private static DesignatorShapeDef cachedTool;
+    public static DesignatorShapeDef CachedTool
+    {
+        get => cachedTool;
+        set
+        {
+            cachedTool = value;
+            CurrentTool ??= value;
+        }
+    }
 
     public static int Rotation { get; internal set; }
 
@@ -36,6 +46,8 @@ public class DesignatorShapes : Mod
                 showControls = value;
         }
     }
+
+    internal static bool UseCustomGeometry => InputOwnership.CustomOwnsRoute(ShowControls, Find.DesignatorManager?.SelectedStyle?.DrawStyleWorker?.GetType());
 
     private static DesignatorSettings settings;
 
@@ -56,11 +68,12 @@ public class DesignatorShapes : Mod
 
     public static int Thickness
     {
-        get => thickness;
+        get => ShowControls ? thickness : 1;
         private set => thickness = value switch { var v when v < -50 => 50, var v when v > 50 => 50, _ => value, };
     }
 
     private static Vector2 scrollPosition = Vector2.zero;
+    private static float settingsViewHeight;
 
     public DesignatorShapes(ModContentPack content) : base(content)
     {
@@ -77,6 +90,8 @@ public class DesignatorShapes : Mod
         LongEventHandler.ExecuteWhenFinished(() =>
         {
             BoundingBoxTexture = ContentFinder<Texture2D>.Get("UI/Icons/BoundingBox");
+            LoadDefs();
+            VanillaPalette.Apply();
         });
     }
 
@@ -84,12 +99,14 @@ public class DesignatorShapes : Mod
     {
         LoadDefs();
 
-        var ls = new Listing_Standard();
-        var outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - inRect.y);
-        var viewRect = new Rect(0, 0, outRect.width - 16, (Text.LineHeight + 2) * (27 + KeySettings.DefaultKeys.Count));
+        var viewRect = new Rect(0f, 0f, inRect.width - 25f, Mathf.Max(inRect.height, settingsViewHeight));
+        Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect, showScrollbars: true);
 
-        ls.Begin(viewRect);
-        Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
+        var ls = new Listing_Standard();
+        // Measure all controls in one column, including wrapped translations.
+        var listingRect = viewRect;
+        listingRect.height = 100000f;
+        ls.Begin(listingRect);
 
         if (ls.ButtonText("Merthsoft_DesignatorShapes_Settings_ShowShapeDictionary".Translate()))
         {
@@ -102,6 +119,9 @@ public class DesignatorShapes : Mod
         var maxBuffer = Settings.FloodFillCellLimit.ToString();
         ls.Label("Merthsoft_DesignatorShapes_Settings_MaxCells".Translate());
         ls.TextFieldNumeric(ref Settings.FloodFillCellLimit, ref maxBuffer);
+        ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_RestrictFloodFillToRevealedCells".Translate(),
+            ref Settings.RestrictFloodFillToRevealedCells,
+            "Merthsoft_DesignatorShapes_Settings_RestrictFloodFillToRevealedCellsTooltip".Translate());
         ls.GapLine();
 
         ls.Label("Merthsoft_DesignatorShapes_BoundingBoxBasedOnShapeMode".Translate());
@@ -139,7 +159,7 @@ public class DesignatorShapes : Mod
         ls.CheckboxLabeled("Merthsoft_DesignatorShapes_Settings_AllowCollapsing".Translate(), ref Settings.ToggleableInterface);
         if (Settings.ToggleableInterface && Settings.EnableKeyboardInput)
         {
-            ls.CheckboxLabeled("\t" + "Merthsoft_DesignatorShapes_Settings_AltToggle".Translate(), ref Settings.RestoreAltToggle);
+
             if (Settings.RestoreAltToggle)
                 ls.CheckboxLabeled("\t" + "Merthsoft_DesignatorShapes_Settings_HideCompletelyOnAltToggle".Translate(), ref Settings.HideCompletelyOnAltToggle);
         }
@@ -156,8 +176,10 @@ public class DesignatorShapes : Mod
                 DrawKeyInput(ls, keyIndex);
         }
 
-        Widgets.EndScrollView();
+        AdvancedSettingsUi.Draw(ls);
+        settingsViewHeight = ls.CurHeight;
         ls.End();
+        Widgets.EndScrollView();
         Settings.Write();
 
         ShapeControls = new(Settings.WindowX, Settings.WindowY, Settings.IconSize);
@@ -209,6 +231,7 @@ public class DesignatorShapes : Mod
                 KeyCode.Minus,
                 KeyCode.Z,
                 KeyCode.Y,
+                KeyCode.None,
             ]);
 
             if (Settings.Keys == null)
@@ -270,12 +293,24 @@ public class DesignatorShapes : Mod
             Thickness--;
     }
 
-    internal static void SelectTool(DesignatorShapeDef def)
+    internal static void SelectTool(DesignatorShapeDef def, bool remember = true)
     {
+        if (!ShapeEligibility.IsDrawable(def)) return;
         FreeformLine.FreeMemory();
+        if (remember && InputOwnership.IsStandaloneFill(Find.DesignatorManager?.SelectedStyle?.DrawStyleWorker?.GetType()))
+        {
+            var manager=Find.DesignatorManager;
+            var styles=manager.SelectedDesignator?.DrawStyleCategory?.styles;
+            var fallback=styles?.FirstOrDefault(style=>style.defName is "FilledRectangle" or "EmptyRectangle")
+                ?? styles?.FirstOrDefault(style=>!InputOwnership.IsStandaloneFill(style.DrawStyleWorker.GetType())&&!style.DrawStyleWorker.SingleCell);
+            if(fallback!=null)manager.SelectedStyle=fallback;
+        }
+        var toolChanged = CurrentTool != def;
+        if (toolChanged && ShapeEligibility.IsDrawable(CurrentTool)) PreviousTool = CurrentTool;
+        if (remember) ShapeMemory.Remember(Find.DesignatorManager?.SelectedDesignator, def);
         if (def != null)
             CachedTool = def;
-        if (Settings.AnnounceToolSelection && CurrentTool != def)
+        if (Settings.AnnounceToolSelection && toolChanged)
             Messages.Message("Merthsoft_DesignatorShapes_ToolSelected".Translate(def.LabelCap), MessageTypeDefOf.SilentInput, historical: false);
         CurrentTool = def;
         Rotation = 0;
@@ -306,7 +341,7 @@ public class DesignatorShapes : Mod
     {
         var intVec = dragger.GetInstanceField<IntVec3>("startDragCell");
         var intVec2 = UI.MouseCell();
-        return (intVec, intVec2);
+        return DrawingBounds.Current(CurrentTool, intVec, intVec2);
     }
 
     public static void DrawDraggerOutline(DesignationDragger dragger)

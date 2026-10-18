@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -6,6 +6,25 @@ using Verse;
 using static Merthsoft.DesignatorShapes.KeySettings;
 
 namespace Merthsoft.DesignatorShapes.Patches;
+
+[HarmonyPatch(typeof(WindowStack), "HandleEventsHighPriority")]
+internal static class ShapeWindowKeyboardInput
+{
+    static void Prefix()
+    {
+        bool visible = Find.CurrentMap != null && Find.DesignatorManager.SelectedDesignator != null
+            && !WorldRendererUtility.WorldSelected
+            && (DesignatorShapes.ShowControls || !DesignatorShapes.Settings.HideCollapsedInterface)
+            && (!DesignatorShapes.Settings.HideWhenNoOpenTab || Find.MainTabsRoot.OpenTab != null);
+        DesignatorShapes.ShapeControls?.HandleDragInput(visible);
+        if (visible)
+        {
+            DesignatorShapes.ShapeControls?.HandleKeyboardInput();
+        }
+        if (Find.CurrentMap != null && !WorldRendererUtility.WorldSelected)
+            ShapeShortcuts.Handle(Find.DesignatorManager);
+    }
+}
 
 [HarmonyPatch(typeof(MapInterface), "MapInterfaceOnGUI_AfterMainTabs")]
 public static class MapInterface_MapInterfaceOnGUI_AfterMainTabs
@@ -17,24 +36,15 @@ public static class MapInterface_MapInterfaceOnGUI_AfterMainTabs
             || WorldRendererUtility.WorldSelected)
             return;
 
-        if (DesignatorShapes.ShowControls)
-            DesignatorShapes.ShapeControls?.ShapeControlsOnGUI();
-        else if (DesignatorShapes.Settings.RestoreAltToggle && !DesignatorShapes.Settings.HideCompletelyOnAltToggle)
+        if (DesignatorShapes.ShowControls || !DesignatorShapes.Settings.HideCollapsedInterface)
             DesignatorShapes.ShapeControls?.ShapeControlsOnGUI();
 
-        if (!DesignatorShapes.Settings.EnableKeyboardInput)
+        if (!DesignatorShapes.Settings.EnableKeyboardInput || ShapeShortcuts.InputBlocked)
             return;
 
         var current = Event.current;
 
-        if (current.type == EventType.KeyDown && current.alt && DesignatorShapes.Settings.RestoreAltToggle)
-        {
-            DesignatorShapes.ShowControls = !DesignatorShapes.ShowControls;
-            Event.current.Use();
-            return;
-        }
-
-        if (!DesignatorShapes.ShowControls)
+        if (!DesignatorShapes.UseCustomGeometry)
             return;
 
         var designatorManager = __instance.designatorManager;
@@ -52,20 +62,7 @@ public static class MapInterface_MapInterfaceOnGUI_AfterMainTabs
             var key = current.keyCode;
             var keyMap = DesignatorShapes.Settings.Keys;
 
-            if (current.control)
-            {
-                if (key == keyMap[UndoKeyIndex])
-                {
-                    HistoryManager.Undo();
-                    current.Use();
-                }
-                else if (key == keyMap[RedoKeyIndex])
-                {
-                    HistoryManager.Redo();
-                    current.Use();
-                }
-            }
-            else
+            if (!(current.control || Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
             {
                 if (key == keyMap[RotateLeftKeyIndex] && DesignatorShapes.Settings.EnableRotationKeys)
                 {

@@ -1,4 +1,4 @@
-﻿using Merthsoft.DesignatorShapes.Defs;
+using Merthsoft.DesignatorShapes.Defs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,9 +49,10 @@ internal class ShapeMenuDriver
                 },
                 .. SelectedGroup.Shapes.Select(s => new ActionIcon
                 {
+                    shape = s,
                     label = s.LabelCap,
                     description = s.description,
-                    icon = DictionaryMode || DesignatorShapes.CurrentTool?.defName != s.defName
+                    icon = DictionaryMode || !DesignatorShapes.UseCustomGeometry || DesignatorShapes.CurrentTool?.defName != s.defName
                             ? s.uiIcon
                             : s.selectedUiIcon,
                     action = DictionaryMode ? null : () => DesignatorShapes.SelectTool(s),
@@ -66,7 +67,7 @@ internal class ShapeMenuDriver
     {
         label = g.LabelCap,
         description = g.description,
-        icon = DictionaryMode || DesignatorShapes.CurrentTool?.Group?.defName != g.defName
+        icon = DictionaryMode || !DesignatorShapes.UseCustomGeometry || DesignatorShapes.CurrentTool?.Group?.defName != g.defName
                 ? g.UiIcon
                 : DesignatorShapes.CurrentTool?.selectedUiIcon,
         action = GetAction(g)
@@ -75,7 +76,7 @@ internal class ShapeMenuDriver
     private Action GetAction(OverlayGroupDef g)
         => g.SelectMode switch
         {
-            AutoSelectGroupMode.AutoSelect => DictionaryMode ? null : () => DesignatorShapes.SelectTool(g.FirstShape),
+            AutoSelectGroupMode.AutoSelect when !DictionaryMode => () => DesignatorShapes.SelectTool(g.FirstShape),
             _ => () =>
             {
                 previousGroups.Push(SelectedGroup);

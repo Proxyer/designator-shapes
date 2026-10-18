@@ -11,20 +11,44 @@ public static class FloodFill
     {
         var ret = new HashSet<IntVec3>();
         var map = Find.CurrentMap;
+        if (map == null || !t.InBounds(map))
+            return ret;
+
+        var restrictToRevealed = DesignatorShapes.Settings.RestrictFloodFillToRevealedCells;
+        bool CanVisit(IntVec3 cell) => cell.InBounds(map) && (!restrictToRevealed || IsRevealedCell(map, cell));
+        if (!CanVisit(t))
+            return ret;
 
         var wallAtMouse = map.getWallDefAt(t);
-        var designationsAtMouse = map.getDesignationsAt(t);
+        // AllDesignationsAt reuses a temporary list; retain only the seed's state.
+        var hasDesignationsAtMouse = map.getDesignationsAt(t).Any();
         var mineableAtMouse = map.getMineableAt(t);
+        var barrierDefs = DesignatorShapes.Settings.EnableCustomFloodFillBarriers
+            ? new HashSet<string>(DesignatorShapes.Settings.AdditionalFloodFillBarrierDefs ?? new List<string>()) : new HashSet<string>();
+        var fillDef = wallAtMouse ?? mineableAtMouse?.def;
+        bool IsAdditionalBarrier(IntVec3 cell) => barrierDefs.Count>0 && map.thingGrid.ThingsListAtFast(cell).Any(thing=>
+        {
+            var def=thing.def.entityDefToBuild as ThingDef ?? thing.def;
+            return def!=fillDef && barrierDefs.Contains(def.defName);
+        });
+        if(IsAdditionalBarrier(t))return ret;
         var floorAtMouse = map.getTerrainAt(t);
         var fertAtMouse = map.getFertilityAt(t);
 
         var cells = new Queue<IntVec3>();
         cells.Enqueue(t);
+        void EnqueueIfAllowed(IntVec3 cell)
+        {
+            if (CanVisit(cell) && !IsAdditionalBarrier(cell))
+                cells.Enqueue(cell);
+        }
 
         while (cells.Count() > 0 && ret.Count() < DesignatorShapes.Settings.FloodFillCellLimit)
         {
             var cell = cells.Dequeue();
-            if (!cell.InBounds(map))
+            if (!CanVisit(cell))
+                continue;
+            if (IsAdditionalBarrier(cell))
                 continue;
             if (ret.Contains(cell))
                 continue;
@@ -51,9 +75,9 @@ public static class FloodFill
                 if (cellMineable?.def == mineableAtMouse.def)
                     addFlag = true;
             }
-            else if (designationsAtMouse?.Count() > 0)
+            else if (hasDesignationsAtMouse)
             {
-                if (cellDes.Count() > 0)
+                if (cellWall == null && cellMineable == null && cellDes.Count() > 0)
                     addFlag = true;
             }
             else if (cellWall == null && cellMineable == null)
@@ -66,7 +90,7 @@ public static class FloodFill
                     foreach (var thing in cellThings)
                     {
                         var def = thing.def.entityDefToBuild == null ? thing.def : thing.def.entityDefToBuild as ThingDef;
-                        if (def.coversFloor || def.IsStructure())
+                        if (def?.coversFloor == true || def.IsStructure())
                         {
                             addFlag = false;
                             break;
@@ -78,14 +102,36 @@ public static class FloodFill
             if (addFlag)
             {
                 ret.Add(cell);
-                cells.Enqueue(cell + IntVec3.North);
-                cells.Enqueue(cell + IntVec3.East);
-                cells.Enqueue(cell + IntVec3.South);
-                cells.Enqueue(cell + IntVec3.West);
+                EnqueueIfAllowed(cell + IntVec3.North);
+                EnqueueIfAllowed(cell + IntVec3.East);
+                EnqueueIfAllowed(cell + IntVec3.South);
+                EnqueueIfAllowed(cell + IntVec3.West);
             }
         }
 
         return ret;
+    }
+
+    private static bool IsRevealedCell(Map map, IntVec3 cell)
+    {
+        if (cell.Fogged(map))
+            return false;
+
+        var mineable = map.getMineableAt(cell);
+        if (mineable?.def.building?.isNaturalRock != true && mineable?.def.building?.isResourceRock != true)
+            return true;
+
+        // Require a cardinal face blocked by neither a rock link nor a full edifice.
+        // An unfogged interior tile still conceals its ore identity until a face is exposed.
+        foreach (var direction in GenAdj.CardinalDirections)
+        {
+            var adjacent = cell + direction;
+            if (adjacent.InBounds(map) && !adjacent.Fogged(map)
+                && (map.linkGrid.LinkFlagsAt(adjacent) & LinkFlags.Rock) == 0
+                && (adjacent.GetEdifice(map)?.def.fillPercent ?? 0f) < 1f)
+                return true;
+        }
+        return false;
     }
 
     private static float getFertilityAt(this Map map, IntVec3 cell) 

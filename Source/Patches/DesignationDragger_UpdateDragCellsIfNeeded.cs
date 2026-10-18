@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using UnityEngine;
 using Verse;
 
@@ -9,7 +9,7 @@ public static class DesignationDragger_UpdateDragCellsIfNeeded
 {
     public static bool Prefix(DesignationDragger __instance)
     {
-        if (!DesignatorShapes.ShowControls)
+        if (!DesignatorShapes.UseCustomGeometry)
             return true;
         if (__instance == null)
             return false;
@@ -26,6 +26,9 @@ public static class DesignationDragger_UpdateDragCellsIfNeeded
         var sizeOrEnd = DesignatorShapes.CurrentTool.useSizeInputs 
                         ? Merthsoft.DesignatorShapes.Ui.ShapeControlsWindow.InputVec 
                         : UI.MouseCell();
+
+        if (!DesignatorShapes.CurrentTool.useSizeInputs)
+            (start, sizeOrEnd) = DrawingBounds.Current(DesignatorShapes.CurrentTool, start, sizeOrEnd);
 
         var points = DesignatorShapes.CurrentTool?.DrawMethod(start, sizeOrEnd);
 

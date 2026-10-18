@@ -1,18 +1,32 @@
 # Designator Shapes
+
+<!-- merthsoft-download -->
+## Download
+
+[Download designator-shapes.zip](https://merthsoft.com/RimWorld/designator-shapes.zip) — RimWorld 1.7 release.
+
+The archive includes older supported version folders where available. Extract the mod folder into RimWorld's `Mods` directory.
+<!-- /merthsoft-download -->
+
 Allows you to build, mine, zone, etc. in various shapes, such as (both filled and outline):
-- Line (including diagonal and freeform)
-- Rectangle
+- Line (including diagonal, freeform, and L-shaped corners)
+- Rectangles, grids, inverse grids, and checkerboards
 - Ellipse
-- Circle
+- Circle, quarter arcs, and semicircles
 - Pentagon
-- Hexagon
+- Hexagon and octagon, including midpoint variants
+
 Also includes these pre-defined object shapes (both filled and outline):
 - Sun lamp
 - Orbital trade beacon
 
-See the shape dictionary in the mod settings!
+See the shape dictionary in the mod settings! Each drawable shape has an **Include in vanilla palette** checkbox. Changes apply immediately and are saved in Mod Settings. Collapse the Shapes panel to use the vanilla palette. Existing mod additions remain enabled by default; other shapes are opt-in. Built-in shapes and standalone mods remain independent. Fixed-size shapes show width/height inputs beside the vanilla controls.
 
-There's also a flood-fill tool, as well as undo/redo functionality when the game is paused.
+Hold RimWorld's **force square dimensions** key (Ctrl by default) to constrain rectangles, ellipses, grids, arcs, and other bounds-based shapes to equal width and height. This uses your existing RimWorld key binding. Center/radius shapes, freeform lines, stamps, and fixed-size inputs keep their normal behavior.
+
+Flood fill has configurable barriers and optional reveal restrictions and destructive-action confirmation. Ctrl+Z undoes and Ctrl+Y redoes designations while paused.
+
+Mod Settings supports Ctrl+Alt shape shortcuts and a configurable collapse shortcut (off by default). **Previous shape** switches between your last two shapes and is unbound by default. Custom grids are directly in their parent menus; checkerboard width/height controls set tile size.
 
 ## To use:
 - Select the task you want to do (build, mine, zone, etc.)
