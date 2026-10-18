@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <LineFreeform.label>フリーフォーム線</LineFreeform.label>
+  <Hexagon.label>六角形</Hexagon.label>
+  <HexagonFilled.label>塗りつぶし六角形</HexagonFilled.label>
+  <MidpointHexagon.label>中心点六角形</MidpointHexagon.label>
+  <MidpointHexagonFilled.label>塗りつぶし中心点六角形</MidpointHexagonFilled.label>
+  <Circle.label>円</Circle.label>
+  <CircleFilled.label>塗りつぶし円</CircleFilled.label>
+  <SunLamp.label>太陽灯</SunLamp.label>
+  <SunLampOutline.label>太陽灯の輪郭</SunLampOutline.label>
+  <TradeBeacon.label>トレードビーコン</TradeBeacon.label>
+  <TradeBeaconOutline.label>トレードビーコンの輪郭</TradeBeaconOutline.label>
+
+
+</LanguageData>

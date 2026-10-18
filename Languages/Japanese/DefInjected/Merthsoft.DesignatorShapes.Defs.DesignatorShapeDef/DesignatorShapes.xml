@@ -4,6 +4,9 @@
   <Line.label>ライン</Line.label>
   <Line.description>直線を指定</Line.description>
 
+  <LineFreeform.label>フリーフォーム線</LineFreeform.label>
+  <LineFreeform.description>ペンのように自由な線を描く</LineFreeform.description>
+
   <Rectangle.label>長方形</Rectangle.label>
   <Rectangle.description>長方形に指定</Rectangle.description>
 
@@ -15,6 +18,42 @@
 
   <RectangleFilled_Input.label>長方形(塗)</RectangleFilled_Input.label>
   <RectangleFilled_Input.description>長方形に指定して塗り潰す</RectangleFilled_Input.description>
+
+  <GridThreeByThree.label>3x3グリッド</GridThreeByThree.label>
+  <GridThreeByThree.description>3x3グリッドで指定</GridThreeByThree.description>
+
+  <GridFourByFour.label>4x4グリッド</GridFourByFour.label>
+  <GridFourByFour.description>4x4グリッドで指定</GridFourByFour.description>
+
+  <GridFiveByFive.label>5x5グリッド</GridFiveByFive.label>
+  <GridFiveByFive.description>5x5グリッドで指定</GridFiveByFive.description>
+
+  <GridSixBySix.label>6x6グリッド</GridSixBySix.label>
+  <GridSixBySix.description>6x6グリッドで指定</GridSixBySix.description>
+
+  <GridSevenBySeven.label>7x7グリッド</GridSevenBySeven.label>
+  <GridSevenBySeven.description>7x7グリッドで指定_7</GridSevenBySeven.description>
+
+  <GridSizeInput.label>カスタムグリッド</GridSizeInput.label>
+  <GridSizeInput.description>任意のサイズのグリッドで指定</GridSizeInput.description>
+
+  <GridThreeByThreeInverse.label>逆3x3グリッド</GridThreeByThreeInverse.label>
+  <GridThreeByThreeInverse.description>逆3x3グリッドで指定</GridThreeByThreeInverse.description>
+
+  <GridFourByFourInverse.label>逆4x4グリッド</GridFourByFourInverse.label>
+  <GridFourByFourInverse.description>逆4x4グリッドで指定</GridFourByFourInverse.description>
+
+  <GridFiveByFiveInverse.label>逆5x5グリッド</GridFiveByFiveInverse.label>
+  <GridFiveByFiveInverse.description>逆5x5グリッドで指定</GridFiveByFiveInverse.description>
+
+  <GridSixBySixInverse.label>逆6x6グリッド</GridSixBySixInverse.label>
+  <GridSixBySixInverse.description>逆6x6グリッドで指定</GridSixBySixInverse.description>
+
+  <GridSevenBySevenInverse.label>逆7x7グリッド</GridSevenBySevenInverse.label>
+  <GridSevenBySevenInverse.description>逆7x7グリッドで指定</GridSevenBySevenInverse.description>
+
+  <GridSizeInputInverse.label>カスタム逆グリッド</GridSizeInputInverse.label>
+  <GridSizeInputInverse.description>カスタムサイズの逆グリッドで指定</GridSizeInputInverse.description>
 
   <Ellipse.label>楕円</Ellipse.label>
   <Ellipse.description>楕円に指定</Ellipse.description>
@@ -34,6 +73,12 @@
   <HexagonFilled.label>六角形(塗)</HexagonFilled.label>
   <HexagonFilled.description>六角形に指定して塗り潰す</HexagonFilled.description>
 
+  <MidpointHexagon.label>中心点六角形</MidpointHexagon.label>
+  <MidpointHexagon.description>中心から六角形内に指定</MidpointHexagon.description>
+
+  <MidpointHexagonFilled.label>中心点塗りつぶし六角形</MidpointHexagonFilled.label>
+  <MidpointHexagonFilled.description>中心から塗りつぶされた六角形内に指定</MidpointHexagonFilled.description>
+
   <Pentagon.label>六角形</Pentagon.label>
   <Pentagon.description>六角形に指定</Pentagon.description>
 
@@ -47,7 +92,7 @@
   <CircleFilled.description>円形に指定して塗り潰す</CircleFilled.description>
 
   <FloodFill.label>塗り潰し</FloodFill.label>
-  <FloodFill.description>壁に囲まれたエリアの中を塗り潰します。</FloodFill.description>
+  <FloodFill.description>壁に囲まれたエリアの中を塗り潰します.</FloodFill.description>
 
   <SunLamp.label>太陽灯</SunLamp.label>
   <SunLamp.description>太陽灯の範囲直径の形に指定</SunLamp.description>
@@ -60,6 +105,42 @@
 
   <TradeBeaconOutline.label>貿易用 ビーコン (輪郭)</TradeBeaconOutline.label>
   <TradeBeaconOutline.description>貿易用ビーコンの範囲形状の輪郭を指定</TradeBeaconOutline.description>
+
+  <Undo.label>元に戻す</Undo.label>
+  <Undo.description>最後の操作を元に戻します.ゲームが一時停止中の場合のみ機能します</Undo.description>
+
+  <Redo.label>やり直す</Redo.label>
+  <Redo.description>最後に元に戻した操作をやり直します.ゲームが一時停止中の場合のみ機能します</Redo.description>
+
+  <Octagon.label>八角形の輪郭</Octagon.label>
+  <Octagon.description>ドラッグした矩形に合わせた八角形の輪郭.太さは線ツールに従います.ドラッグ範囲は各軸512セルまでに制限されます.</Octagon.description>
+
+  <OctagonFilled.label>塗りつぶし八角形</OctagonFilled.label>
+  <OctagonFilled.description>ドラッグした矩形に合わせた八角形の塗りつぶし.ドラッグ範囲は各軸512セルまでに制限されます.</OctagonFilled.description>
+
+  <Checkerboard.label>チェッカーボード: 左下選択</Checkerboard.label>
+  <Checkerboard.description>タイルを交互に配置（デフォルトは1x1セル).横(W)/縦(H)で各タイルの寸法を設定して,ドラッグ範囲の左下を基準に配置します.厚さによって同一性は変化しません.ドラッグ範囲は各軸512セルまでに制限されます.</Checkerboard.description>
+
+  <CheckerboardInverse.label>チェッカーボード: 左下スキップ</CheckerboardInverse.label>
+  <CheckerboardInverse.description>チェッカーボードタイルの逆位相（デフォルトは1x1セル).横(W)/縦(H)で各タイルの寸法を設定して,ドラッグ範囲の左下を基準に配置します.ドラッグ範囲は各軸512セルまでに制限されます.</CheckerboardInverse.description>
+
+  <L.label>L字型の角</L.label>
+  <L.description>左下の境界で交わる2つの垂直な辺.回転して別の角を選択します.ドラッグ範囲は各軸512セルまでに制限されます.</L.description>
+
+  <LInverse.label>逆側L字型の角</LInverse.label>
+  <LInverse.description>右上の境界で交わる2つの垂直な辺.回転して別の角を選択します.ドラッグ範囲は各軸512セルまでに制限されます.</LInverse.description>
+
+  <QuarterArc.label>四分の一楕円弧</QuarterArc.label>
+  <QuarterArc.description>ドラッグの幅と高さ全体に合わせた開いた四分の一楕円.デフォルトの中心は左下で,回転すると向きが変わります.ドラッグ範囲は各軸512セルまでに制限されます.</QuarterArc.description>
+
+  <SemicircleArc.label>半円/半楕円弧</SemicircleArc.label>
+  <SemicircleArc.description>ドラッグした矩形全体に合わせた開いた半楕円.デフォルトの直径は下辺です.高さの2倍から1を引いた幅にすると,円形の半円弧になります.回転して向きを選択します.ドラッグ範囲は各軸512セルまでに制限されます.</SemicircleArc.description>
+
+  <MidpointOctagon.label>中心八角形の輪郭</MidpointOctagon.label>
+  <MidpointOctagon.description>中心から辺までの八角形を描画します.X軸/Z軸オフセットの大きい方が半径を定義し,中点六角形と一致します.対称な奇数の直径を維持するため,半径は255セルに制限されます.</MidpointOctagon.description>
+
+  <MidpointOctagonFilled.label>塗りつぶし中心八角形</MidpointOctagonFilled.label>
+  <MidpointOctagonFilled.description>中心から辺までの八角形を描画します.X軸/Z軸オフセットの大きい方が半径を定義し,中点六角形と一致します.対称な奇数の直径を維持するため,半径は255セルに制限されます.</MidpointOctagonFilled.description>
 
 
 </LanguageData>

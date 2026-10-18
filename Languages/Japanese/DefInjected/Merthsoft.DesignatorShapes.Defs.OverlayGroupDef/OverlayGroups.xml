@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Line.label>線</Line.label>
+  <Rectangle.label>長方形</Rectangle.label>
+
+  <Rectangle_Input.label>固定長方形</Rectangle_Input.label>
+  <Rectangle_Input.description>ユーザーが指定する固定サイズの長方形</Rectangle_Input.description>
+
+  <Grids.label>グリッド</Grids.label>
+  <Grids.description>グリッド</Grids.description>
+
+  <Grids_Inverse.label>逆グリッド</Grids_Inverse.label>
+  <Grids_Inverse.description>逆グリッド</Grids_Inverse.description>
+
+  <Ellipse.label>楕円</Ellipse.label>
+
+  <Ellipse_Input.label>固定楕円</Ellipse_Input.label>
+  <Ellipse_Input.description>ユーザーが指定する固定サイズの楕円</Ellipse_Input.description>
+
+  <MoreShapes.label>その他の図形</MoreShapes.label>
+  <MoreShapes.description>その他の幾何学図形</MoreShapes.description>
+
+  <FloodFill.label>塗りつぶし</FloodFill.label>
+  <FloodFill.description>壁で囲まれた領域を塗りつぶします</FloodFill.description>
+
+  <Etc.label>その他</Etc.label>
+  <Etc.description>RimWorldの定義済み図形</Etc.description>
+
+  <Octagons.label>八角形</Octagons.label>
+  <Arcs.label>弧</Arcs.label>
+  <Checkerboards.label>市松模様</Checkerboards.label>
+
+
+</LanguageData>
